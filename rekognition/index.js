@@ -1,4 +1,5 @@
 const AWS = require('aws-sdk');
+const { db } = require('./firebase.config');
 
 AWS.config.update({ 
   "accessKeyId": "AKIAI2JUHNLGQ6GTCCEA", 
@@ -12,7 +13,7 @@ let params = {
   "Image": {
       "S3Object": {
           "Bucket": "pakogah-project",
-          "Name": "plaaaaaaaaaaaaaat.png"
+          "Name": "3650.jpeg"
       }
   }
 }
@@ -22,6 +23,26 @@ rekognition.detectText(params, function(err, data) {
     console.log(err, err.stack);
   }
   else {
-    console.log(data);
+    const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
+
+    let detectedText = data.TextDetections.map(detected => detected.DetectedText); 
+    let plat = detectedText.find(platText => platCriteria.test(platText));
+    // console.log(plat);
+
+    db
+      .ref('/plat')
+      .push({
+        text: plat,
+        status: 1,
+        createdAt: new Date().toDateString()
+      }, (err) => {
+        if (err) {
+          console.error(err);
+        } else {
+          console.log('inserted to firebase');
+        }
+      });
+
+    // console.log(JSON.stringify(data.TextDetections));
   }
 });
