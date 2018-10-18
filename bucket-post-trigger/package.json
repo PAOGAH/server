@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "aws-sdk": "^2.336.0",
+    "firebase": "^5.5.4"
+  }
+}
