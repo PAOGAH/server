@@ -12,7 +12,7 @@ let params = {
   "Image": {
       "S3Object": {
           "Bucket": "pakogah-project",
-          "Name": "plaaaaaaaaaaaaaat.png"
+          "Name": "3650.jpeg"
       }
   }
 }
@@ -25,9 +25,9 @@ rekognition.detectText(params, function(err, data) {
     const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
 
     let detectedText = data.TextDetections.map(detected => detected.DetectedText); 
-    let platData = detectedText.find(platText => platCriteria.test(platText));
+    let plat = detectedText.find(platText => platCriteria.test(platText));
     
-    console.log(platData);
+    console.log(plat);
 
     // console.log(JSON.stringify(data.TextDetections));
   }
