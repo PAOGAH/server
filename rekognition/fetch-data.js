@@ -6,6 +6,13 @@ db
     if (!snapshot.val()) {
       console.log('No data found!');
     } else {
-      console.log(snapshot.val());
+      let data = snapshot.val();
+      let results = [];
+
+      for(let key in data) {
+        results.push({...data[key], id: key});
+      }
+
+      console.log(results);
     }
   })
