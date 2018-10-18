@@ -1,36 +1,36 @@
-// const AWS = require('aws-sdk');
+'use strict';
 
-// AWS.config = new AWS.Config();
-// AWS.config.accessKeyId = "AKIAJOXPA7XXV7BDT5XA";
-// AWS.config.secretAccessKey = "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";
-// AWS.config.region = "us-east-1";
+console.log('Loading function');
 
-const { db } = require('./firebase.config');
+const aws = require('aws-sdk');
 
-function postToFirebase () {
-  return new Promise((resolve, reject) => {
-    db.ref('test').push({
-      message: 'hello world'
-    }, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve('success')
-      }
-    })
-  })
-}
+const s3 = new aws.S3({ apiVersion: '2006-03-01' });
 
-exports.handler = async (event) => {
-  
-  let responseFirebase = await postToFirebase();
 
-  const response = {
-      statusCode: 200,
-      body: {
-        message: 'OK',
-        data: responseFirebase
-      }
-  };
-  return response;
+exports.handler = (event, context, callback) => {
+    // console.log('Received event:', JSON.stringify(event, null, 2));
+    // console.log(event, '<======================= EVENT');
+
+    console.log(event.Records[0].s3.bucket);
+
+    return event.Records[0].s3.bucket;
+
+    // Get the object from the event and show its content type
+    // const bucket = event.Records[0].s3.bucket.name;
+    // const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
+    // const params = {
+    //     Bucket: bucket,
+    //     Key: key,
+    // };
+    // s3.getObject(params, (err, data) => {
+    //     if (err) {
+    //         console.log(err);
+    //         const message = `Error getting object ${key} from bucket ${bucket}. Make sure they exist and your bucket is in the same region as this function.`;
+    //         console.log(message);
+    //         callback(message);
+    //     } else {
+    //         console.log('CONTENT TYPE:', data.ContentType);
+    //         callback(null, data.ContentType);
+    //     }
+    // });
 };
