@@ -35,6 +35,12 @@ rekognition.detectText(params, function(err, data) {
         text: plat,
         status: 1,
         createdAt: new Date().toDateString()
+      }, (err) => {
+        if (err) {
+          console.error(err);
+        } else {
+          console.log('inserted to firebase');
+        }
       });
 
     // console.log(JSON.stringify(data.TextDetections));
