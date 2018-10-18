@@ -35,7 +35,7 @@ rekognition.detectText(params, function(err, data) {
         text: plat,
         status: 1,
         createdAt: new Date().toDateString()
-      }
+      });
 
     // console.log(JSON.stringify(data.TextDetections));
   }
