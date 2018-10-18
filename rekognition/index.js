@@ -22,6 +22,11 @@ rekognition.detectText(params, function(err, data) {
     console.log(err, err.stack);
   }
   else {
-    console.log(data);
+    const platCriteria = //
+
+    let detectedText = data.TextDetections.map(detect => detect.DetectedText); 
+    let plat = detectedText.filter
+    console.log(detectedText);
+    // console.log(JSON.stringify(data.TextDetections));
   }
 });
