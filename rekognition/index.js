@@ -1,4 +1,5 @@
 const AWS = require('aws-sdk');
+const { db } = require('./firebase.config');
 
 AWS.config.update({ 
   "accessKeyId": "AKIAI2JUHNLGQ6GTCCEA", 
@@ -26,8 +27,15 @@ rekognition.detectText(params, function(err, data) {
 
     let detectedText = data.TextDetections.map(detected => detected.DetectedText); 
     let plat = detectedText.find(platText => platCriteria.test(platText));
-    
-    console.log(plat);
+    // console.log(plat);
+
+    db
+      .ref('/plat')
+      .push({
+        text: plat,
+        status: 1,
+        createdAt: new Date().toDateString()
+      }
 
     // console.log(JSON.stringify(data.TextDetections));
   }
