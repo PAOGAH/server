@@ -24,9 +24,11 @@ rekognition.detectText(params, function(err, data) {
   else {
     const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
 
-    let detectedText = data.TextDetections.map(detect => detect.DetectedText); 
-    let plat = detectedText.filter
-    console.log(detectedText);
+    let detectedText = data.TextDetections.map(detected => detected.DetectedText); 
+    let platData = detectedText.find(platText => platCriteria.test(platText));
+    
+    console.log(platData);
+
     // console.log(JSON.stringify(data.TextDetections));
   }
 });
