@@ -16,6 +16,7 @@ AWS.config.update({
 
 // Save Rekognition Data
 let rekognitionData;
+let platID;
 
 function uploadToS3(params) {
   return new Promise ((resolve, reject) => {
@@ -167,9 +168,163 @@ describe('Unit Testing', () => {
       });
   });
 
-  it('should save rekognition data to firestore correctly', (done) => {
+  it('should save rekognition data to firestore if data already exists', (done) => {
+    const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
+    
+    let detectedText = rekognitionData.TextDetections.map(detected => detected.DetectedText); 
+    let plat = detectedText.find(platText => platCriteria.test(platText));
 
+    firestore
+          .collection('licenses')
+          .where('text', '==', plat)
+          .where('status', '==', true)
+          .get()
+          .then(snapshot => {
+
+            if (snapshot.empty) {
+              firestore.collection('licenses').add({
+                text: plat,
+                status: true,
+                createdAt: new Date().toString(),
+                updatedAt: new Date().toString(),
+                imgTrue: `https://s3.amazonaws.com/${BUCKET_NAME}/${BUCKET_KEY}`,
+                imgFalse: ''
+              }).then((doc) => {
+                  assert.exists(doc.id);
+                  assert.isNotNull(doc.id);
+                  assert.isString(doc.id);
+
+                  platID = doc.id;
+                  done();
+                })
+                .catch((err) => {
+                  console.error(err);
+                  done();
+                })
+            } else {
+              console.log('data already exists');
+              done();
+            }
+          })
+          .catch(err => {
+            console.log('Error getting documents', err);
+            done();
+          });
   });
+
+  it('should get firebase data correctly', (done) => {
+    const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
+    
+    let detectedText = rekognitionData.TextDetections.map(detected => detected.DetectedText); 
+    let plat = detectedText.find(platText => platCriteria.test(platText));
+
+    firestore
+      .collection('licenses')
+      .where('text', '==', plat)
+      .where('status', '==', true)
+      .get()
+        .then(snapshot => {
+
+          // Uniq license
+          if (snapshot.empty) {
+            console.log('data not exists');
+            done();
+
+          } else {
+            snapshot.forEach(doc => {
+              let data = doc.data();
+              
+              assert.exists(data);
+              assert.isNotNull(data);
+              assert.isObject(data);
+
+              assert.exists(data.text);
+              assert.exists(data.status);
+              assert.exists(data.createdAt);
+              assert.exists(data.updatedAt);
+              assert.exists(data.imgFalse);
+              assert.exists(data.imgTrue);
+
+              assert.isNotNull(data.text);
+              assert.isNotNull(data.status);
+              assert.isNotNull(data.createdAt);
+              assert.isNotNull(data.updatedAt);
+              assert.isNotNull(data.imgFalse);
+              assert.isNotNull(data.imgTrue);
+
+              assert.isString(data.text);
+              assert.isString(data.imgTrue);
+              assert.isBoolean(data.status);
+
+              done();
+            })
+          }
+        })
+        .catch(err => {
+          console.log('Error getting documents', err);
+          done();
+        });
+  });
+
+  it('should update firestore data if rekognition data already exists', (done) => {
+    const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
+    
+    let detectedText = rekognitionData.TextDetections.map(detected => detected.DetectedText); 
+    let plat = detectedText.find(platText => platCriteria.test(platText));
+
+    firestore
+      .collection('licenses')
+      .where('text', '==', plat)
+      .where('status', '==', true)
+      .get()
+        .then(snapshot => {
+
+          // Uniq license
+          if (snapshot.empty) {
+            console.log('data not exists');
+            done();
+
+          } else {
+            snapshot.forEach(doc => {
+              firestore.collection('licenses').doc(doc.id).update({ status: false })
+              .then(() => {
+                assert.exists(doc.id);
+                assert.isNotNull(doc.id);
+                assert.isString(doc.id);
+
+                done();
+              })
+              .catch(err => {
+                console.error(err);
+                done();
+              });
+            })
+          }
+        })
+        .catch(err => {
+          console.log('Error getting documents', err);
+          done();
+        });
+  });
+
+  it('should delete firestore data with status = false', (done) => {
+    const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
+    
+    let detectedText = rekognitionData.TextDetections.map(detected => detected.DetectedText); 
+    let plat = detectedText.find(platText => platCriteria.test(platText));
+
+    firestore
+      .collection('licenses')
+      .doc(platID)
+      .delete()
+      .then(() => {
+        done();
+      })
+      .catch(err => {
+        console.error(err);
+        done();
+      });
+  })
 
   it('lambda should run correctly', (done) => {
     // let event = {
