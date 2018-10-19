@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-const { db } = require('./firebase.config');
+const { firestore } = require('./firebase.config');
 const chai = require('chai');
 const assert = chai.assert;
 const fs = require('fs');
@@ -96,66 +96,6 @@ describe('Unit Testing', () => {
         console.error(err);
         done();
       })
-  });
-
-  it('should detect text in image using AWS Rekognition', (done) => {
-    let imageBuffer = fs.readFileSync('platnya.png');
-    let params = { Bucket: BUCKET_NAME, Key: BUCKET_KEY, Body: imageBuffer };
-
-    uploadToS3(params)
-      .then((s3Result) => {
-        let rekogParams = {
-          "Image": {
-            "S3Object": {
-              "Bucket": BUCKET_NAME,
-              "Name": BUCKET_KEY
-            }
-          }
-        }
-
-        rekognition(rekogParams)
-          .then(rekogResult => {
-
-            assert.isObject(rekogResult);
-            assert.isObject(rekogResult['TextDetections'][0]['Geometry']);
-
-            assert.isArray(rekogResult['TextDetections'])
-            assert.isAbove(rekogResult['TextDetections'].length, 0);
-
-            assert.exists(rekogResult['TextDetections'][0]['DetectedText']);
-            assert.exists(rekogResult['TextDetections'][0]['Type']);
-            assert.exists(rekogResult['TextDetections'][0]['Id']);
-            assert.exists(rekogResult['TextDetections'][0]['Confidence']);
-            assert.exists(rekogResult['TextDetections'][0]['Geometry']);
-
-            assert.isNotNull(rekogResult['TextDetections'][0]['DetectedText']);
-            assert.isNotNull(rekogResult['TextDetections'][0]['Type']);
-            assert.isNotNull(rekogResult['TextDetections'][0]['Id']);
-            assert.isNotNull(rekogResult['TextDetections'][0]['Confidence']);
-
-            assert.typeOf(rekogResult['TextDetections'][0]['DetectedText'], 'string');
-            assert.typeOf(rekogResult['TextDetections'][0]['Type'], 'string');
-            assert.typeOf(rekogResult['TextDetections'][0]['Id'], 'number');
-            assert.typeOf(rekogResult['TextDetections'][0]['Confidence'], 'number');
-
-            deleteS3Object({ Bucket: BUCKET_NAME, Key: BUCKET_KEY })
-              .then(() => {
-                done();
-              })
-              .catch(deletedErr => {
-                console.error(deletedErr);
-                done();
-              });
-          })
-          .catch(rekogErr => {
-            console.error(rekogErr);
-            done();
-          });
-      })
-      .catch(err => {
-        console.error(err);
-        done();
-      }); 
   });
 
   it('should detect text in image using AWS Rekognition', (done) => {
