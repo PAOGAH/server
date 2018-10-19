@@ -14,6 +14,9 @@ AWS.config.update({
   "region": "us-east-1"
 });
 
+// Save Rekognition Data
+let rekognitionData;
+
 function uploadToS3(params) {
   return new Promise ((resolve, reject) => {
     const s3 = new AWS.S3();
@@ -86,12 +89,7 @@ describe('Unit Testing', () => {
         assert.equal(result['key'], BUCKET_KEY);
         assert.equal(result['Location'], `https://${BUCKET_NAME}.s3.amazonaws.com/${BUCKET_KEY}`);
 
-        deleteS3Object({ Bucket: BUCKET_NAME, Key: BUCKET_KEY })
-          .then(() => done())
-          .catch(deletedErr => {
-            console.error(deletedErr);
-            done();
-          });
+        done();
       })
       .catch(err => {
         console.error(err);
@@ -100,104 +98,117 @@ describe('Unit Testing', () => {
   });
 
   it('should detect text in image using AWS Rekognition', (done) => {
-    let imageBuffer = fs.readFileSync('platnya.png');
-    let params = { Bucket: BUCKET_NAME, Key: BUCKET_KEY, Body: imageBuffer };
 
-    uploadToS3(params)
-      .then((s3Result) => {
-        let rekogParams = {
-          "Image": {
-            "S3Object": {
-              "Bucket": BUCKET_NAME,
-              "Name": BUCKET_KEY
-            }
-          }
+    let rekogParams = {
+      "Image": {
+        "S3Object": {
+          "Bucket": BUCKET_NAME,
+          "Name": BUCKET_KEY
         }
+      }
+    }
 
-        rekognition(rekogParams)
-          .then(rekogResult => {
+    rekognition(rekogParams)
+      .then(rekogResult => {
 
-            assert.isObject(rekogResult);
-            assert.isObject(rekogResult['TextDetections'][0]['Geometry']);
+        rekognitionData = rekogResult
 
-            assert.isArray(rekogResult['TextDetections'])
-            assert.isAbove(rekogResult['TextDetections'].length, 0);
+        assert.isObject(rekogResult);
+        assert.isObject(rekogResult['TextDetections'][0]['Geometry']);
 
-            assert.exists(rekogResult['TextDetections'][0]['DetectedText']);
-            assert.exists(rekogResult['TextDetections'][0]['Type']);
-            assert.exists(rekogResult['TextDetections'][0]['Id']);
-            assert.exists(rekogResult['TextDetections'][0]['Confidence']);
-            assert.exists(rekogResult['TextDetections'][0]['Geometry']);
+        assert.isArray(rekogResult['TextDetections'])
+        assert.isAbove(rekogResult['TextDetections'].length, 0);
 
-            assert.isNotNull(rekogResult['TextDetections'][0]['DetectedText']);
-            assert.isNotNull(rekogResult['TextDetections'][0]['Type']);
-            assert.isNotNull(rekogResult['TextDetections'][0]['Id']);
-            assert.isNotNull(rekogResult['TextDetections'][0]['Confidence']);
+        assert.exists(rekogResult['TextDetections'][0]['DetectedText']);
+        assert.exists(rekogResult['TextDetections'][0]['Type']);
+        assert.exists(rekogResult['TextDetections'][0]['Id']);
+        assert.exists(rekogResult['TextDetections'][0]['Confidence']);
+        assert.exists(rekogResult['TextDetections'][0]['Geometry']);
 
-            assert.typeOf(rekogResult['TextDetections'][0]['DetectedText'], 'string');
-            assert.typeOf(rekogResult['TextDetections'][0]['Type'], 'string');
-            assert.typeOf(rekogResult['TextDetections'][0]['Id'], 'number');
-            assert.typeOf(rekogResult['TextDetections'][0]['Confidence'], 'number');
+        assert.isNotNull(rekogResult['TextDetections'][0]['DetectedText']);
+        assert.isNotNull(rekogResult['TextDetections'][0]['Type']);
+        assert.isNotNull(rekogResult['TextDetections'][0]['Id']);
+        assert.isNotNull(rekogResult['TextDetections'][0]['Confidence']);
 
-            done();
+        assert.typeOf(rekogResult['TextDetections'][0]['DetectedText'], 'string');
+        assert.typeOf(rekogResult['TextDetections'][0]['Type'], 'string');
+        assert.typeOf(rekogResult['TextDetections'][0]['Id'], 'number');
+        assert.typeOf(rekogResult['TextDetections'][0]['Confidence'], 'number');
 
-            // deleteS3Object({ Bucket: BUCKET_NAME, Key: BUCKET_KEY })
-            //   .then(() => {
-            //     done();
-            //   })
-            //   .catch(deletedErr => {
-            //     console.error(deletedErr);
-            //     done();
-            //   });
-          })
-          .catch(rekogErr => {
-            console.error(rekogErr);
-            done();
-          });
+        done();
+      })
+      .catch(rekogErr => {
+        console.error(rekogErr);
+        done();
+      });
+  });
+
+  it('checking if firestore response is empty', (done) => {
+    const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
+    
+    let detectedText = rekognitionData.TextDetections.map(detected => detected.DetectedText); 
+    let plat = detectedText.find(platText => platCriteria.test(platText));
+
+    firestore
+      .collection('licenses')
+      .where('text', '==', plat)
+      .where('status', '==', true)
+      .get()
+      .then(snapshot => {
+        assert.exists(snapshot.empty);
+        assert.isNotNull(snapshot.empty);
+        assert.isBoolean(snapshot.empty);
+        
+        done();
       })
       .catch(err => {
         console.error(err);
         done();
-      }); 
+      });
+  });
+
+  it('should save rekognition data to firestore correctly', (done) => {
+
   });
 
   it('lambda should run correctly', (done) => {
-    let event = {
-      "Records": [
-        {
-          "s3": {
-            "bucket": {
-              "name": BUCKET_NAME
-            },
-            "object": {
-              "key": BUCKET_KEY
-            }
-          }
-        }
-      ]
-    }
+    // let event = {
+    //   "Records": [
+    //     {
+    //       "s3": {
+    //         "bucket": {
+    //           "name": BUCKET_NAME
+    //         },
+    //         "object": {
+    //           "key": BUCKET_KEY
+    //         }
+    //       }
+    //     }
+    //   ]
+    // }
+    done();
 
-    lambda.handler(event, null, (err, response) => {
-      if (err) {
-        console.error(err);
-        done();
-      } else {
-        if (response.type === 'exists') {
-          assert.typeOf(response.data, 'string');
-          assert.exists(response.data);
-          assert.isNotNull(response.data);
+    // lambda.handler(event, null, (err, response) => {
+    //   if (err) {
+    //     console.error(err);
+    //     done();
+    //   } else {
+    //     if (response.type === 'exists') {
+    //       assert.typeOf(response.data, 'string');
+    //       assert.exists(response.data);
+    //       assert.isNotNull(response.data);
 
-          done();
-        } else if (response.type === 'not-exists') {
-          assert.typeOf(response.data, 'string');
-          assert.exists(response.data);
-          assert.isNotNull(response.data);
+    //       done();
+    //     } else if (response.type === 'not-exists') {
+    //       assert.typeOf(response.data, 'string');
+    //       assert.exists(response.data);
+    //       assert.isNotNull(response.data);
 
-          done();
-        }
-      }
+    //       done();
+    //     }
+    //   }
       
-    });
+    // });
   })
 
 });
