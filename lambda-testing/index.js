@@ -38,7 +38,7 @@ AWS.config.update({
 
 //         const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
     
-//         let detectedText = data.TextDetections.map(detected => detected.DetectedText); 
+//         let detectedText = data.TextDetections.map(detected => detected.DetectedText);
 //         let plat = detectedText.find(platText => platCriteria.test(platText));
     
 //         db
