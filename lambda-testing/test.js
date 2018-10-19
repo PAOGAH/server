@@ -3,6 +3,7 @@ const { firestore } = require('./firebase.config');
 const chai = require('chai');
 const assert = chai.assert;
 const fs = require('fs');
+const lambda = require('./index');
 
 const BUCKET_NAME = 'pakogah-project2';
 const BUCKET_KEY = 'platnya.png';
@@ -138,14 +139,16 @@ describe('Unit Testing', () => {
             assert.typeOf(rekogResult['TextDetections'][0]['Id'], 'number');
             assert.typeOf(rekogResult['TextDetections'][0]['Confidence'], 'number');
 
-            deleteS3Object({ Bucket: BUCKET_NAME, Key: BUCKET_KEY })
-              .then(() => {
-                done();
-              })
-              .catch(deletedErr => {
-                console.error(deletedErr);
-                done();
-              });
+            done();
+
+            // deleteS3Object({ Bucket: BUCKET_NAME, Key: BUCKET_KEY })
+            //   .then(() => {
+            //     done();
+            //   })
+            //   .catch(deletedErr => {
+            //     console.error(deletedErr);
+            //     done();
+            //   });
           })
           .catch(rekogErr => {
             console.error(rekogErr);
@@ -157,5 +160,44 @@ describe('Unit Testing', () => {
         done();
       }); 
   });
+
+  it('lambda should run correctly', (done) => {
+    let event = {
+      "Records": [
+        {
+          "s3": {
+            "bucket": {
+              "name": BUCKET_NAME
+            },
+            "object": {
+              "key": BUCKET_KEY
+            }
+          }
+        }
+      ]
+    }
+
+    lambda.handler(event, null, (err, response) => {
+      if (err) {
+        console.error(err);
+        done();
+      } else {
+        if (response.type === 'exists') {
+          assert.typeOf(response.data, 'string');
+          assert.exists(response.data);
+          assert.isNotNull(response.data);
+
+          done();
+        } else if (response.type === 'not-exists') {
+          assert.typeOf(response.data, 'string');
+          assert.exists(response.data);
+          assert.isNotNull(response.data);
+
+          done();
+        }
+      }
+      
+    });
+  })
 
 });
