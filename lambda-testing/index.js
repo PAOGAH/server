@@ -35,6 +35,7 @@ exports.handler = (event, context, callback) => {
       console.log('Get image labels');
 
       if (err) {
+        callback(err, null);
         console.log(err, err.stack);
       }
       else {
@@ -62,20 +63,29 @@ exports.handler = (event, context, callback) => {
                   imgTrue: `https://s3.amazonaws.com/${bucketName}/${fileName}`,
                   imgFalse: ''
                 }).then((doc) => {
+                    callback(null, { type: 'not-exists', data: doc.id });
                     console.log(doc.id, '<=========== INSERTED');
                   })
                   .catch((err) => {
+                    callback(err, null);
                     console.error(err);
                   })
               } else {
                 snapshot.forEach(doc => {
                   firestore.collection('licenses').doc(doc.id).update({ status: false })
-                  .then(() => console.log(doc.id, '<========== UPDATED'))
-                  .catch(err => console.error(err));
+                  .then(() => {
+                    callback(null, { type: 'exists', data: doc.id });
+                    console.log(doc.id, '<========== UPDATED')
+                  })
+                  .catch(err => {
+                    callback(err, null);
+                    console.error(err);
+                  });
                 })
               }
             })
             .catch(err => {
+              callback(err, null);
               console.log('Error getting documents', err);
             });
       }
