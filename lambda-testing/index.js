@@ -1,6 +1,6 @@
 'use strict';
 
-console.log('Loading function');
+// console.log('Loading function');
 
 const AWS = require('aws-sdk');
 const { firestore } = require('./firebase.config');
@@ -15,7 +15,7 @@ AWS.config.update({
 
 exports.handler = (event, context, callback) => {
 
-    console.log('Get bucket meta data');
+    // console.log('Get bucket meta data');
 
     let bucketName = event["Records"][0]["s3"]["bucket"]["name"];
     let fileName = event["Records"][0]["s3"]["object"]["key"];
@@ -32,14 +32,14 @@ exports.handler = (event, context, callback) => {
     }
     
     rekognition.detectText(params, function(err, data) {
-      console.log('Get image labels');
+      // console.log('Get image labels');
 
       if (err) {
         callback(err, null);
-        console.log(err, err.stack);
+        // console.log(err, err.stack);
       }
       else {
-        console.log('Want to insert to database');
+        // console.log('Want to insert to database');
 
         const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
     
@@ -64,34 +64,34 @@ exports.handler = (event, context, callback) => {
                   imgFalse: ''
                 }).then((doc) => {
                     callback(null, { type: 'not-exists', data: doc.id });
-                    console.log(doc.id, '<=========== INSERTED');
+                    // console.log(doc.id, '<=========== INSERTED');
                   })
                   .catch((err) => {
                     callback(err, null);
-                    console.error(err);
+                    // console.error(err);
                   })
               } else {
                 snapshot.forEach(doc => {
                   firestore.collection('licenses').doc(doc.id).update({ status: false })
                   .then(() => {
                     callback(null, { type: 'exists', data: doc.id });
-                    console.log(doc.id, '<========== UPDATED')
+                    // console.log(doc.id, '<========== UPDATED')
                   })
                   .catch(err => {
                     callback(err, null);
-                    console.error(err);
+                    // console.error(err);
                   });
                 })
               }
             })
             .catch(err => {
               callback(err, null);
-              console.log('Error getting documents', err);
+              // console.log('Error getting documents', err);
             });
       }
     });
 
-    console.log('end return ----------------');
+    // console.log('end return ----------------');
     return {
       bucketName,
       fileName
