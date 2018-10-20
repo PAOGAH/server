@@ -1,4 +1,13 @@
+#*****************************************************
+#                                                    *
+# Copyright 2018 Amazon.com, Inc. or its affiliates. *
+# All Rights Reserved.                               *
+#                                                    *
+#*****************************************************
 """ A sample lambda for object detection"""
+print 'hello'
+
+
 from threading import Thread, Event
 import os
 import json
@@ -119,7 +128,8 @@ def greengrass_infinite_infer_run():
             cloud_output = {}
             # Get the detected objects and probabilities
             for obj in parsed_inference_results[model_type]:
-                if obj['prob'] > detection_threshold:
+                if obj['prob'] > detection_threshold and obj['label'] == 7:
+                    print 'masuk function utama'
                     # Add bounding boxes to full resolution frame
                     xmin = int(xscale * obj['xmin']) \
                            + int((obj['xmin'] - input_width/2) + input_width/2)
