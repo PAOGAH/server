@@ -55,18 +55,29 @@ exports.handler = (event, context, callback) => {
             } else {
               // Insert to Firestore
 
-              firestore.collection('licenses').add({
-                fileName: fileName,
-                text: plat,
-                status: true,
-                createdAt: new Date().toString(),
-                updatedAt: new Date().toString(),
-                imgTrue: `https://s3.amazonaws.com/${bucketName}/${fileName}`,
-                imgFalse: ''
-              }).then((doc) => {
-                  console.log(doc.id, '<=========== INSERTED');
+              firestore
+                .collection('temp')
+                .doc(fileName)
+                .set({
+                  fileName
                 })
-                .catch((err) => {
+                .then(() => {
+                  firestore.collection('licenses').add({
+                    fileName: fileName,
+                    text: plat,
+                    status: true,
+                    createdAt: new Date().toString(),
+                    updatedAt: new Date().toString(),
+                    imgTrue: `https://s3.amazonaws.com/${bucketName}/${fileName}`,
+                    imgFalse: ''
+                  }).then((doc) => {
+                      console.log(doc.id, '<=========== INSERTED');
+                    })
+                    .catch((err) => {
+                      console.error(err);
+                    })
+                })
+                .catch(err => {
                   console.error(err);
                 })
             }
