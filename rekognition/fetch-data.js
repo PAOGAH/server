@@ -1,18 +1,24 @@
-const { db } = require('./firebase.config');
+const { firestore } = require('./firebase.config');
 
-db
-  .ref('/plat')
-  .on('value', (snapshot) => {
-    if (!snapshot.val()) {
-      console.log('No data found!');
-    } else {
-      let data = snapshot.val();
-      let results = [];
+firestore.settings({ timestampsInSnapshots: true });
 
-      for(let key in data) {
-        results.push({...data[key], id: key});
+firestore
+  .collection('licenses')
+  .where('text', '==', 'B 805 WYN')
+  .where('status', '==', true)
+  .get()
+    .then(snapshot => {
+      if(snapshot.empty) {
+        console.log('tidak ada')
+      } else {
+
+        snapshot.forEach(doc => {
+          firestore.collection('licenses').doc(doc.id).update({ status: false })
+          .then(() => console.log('updatetd'))
+          .catch(err => console.error(err));
+        })
       }
-
-      console.log(results);
-    }
-  })
+    })
+    .catch(err => {
+      console.log('Error getting documents', err);
+    });
