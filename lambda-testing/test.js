@@ -326,7 +326,18 @@ describe('Unit Testing', () => {
       });
   })
 
-  it('lambda should run correctly', (done) => {
+  it('should delete license plate image correctly', (done) => {
+    deleteS3Object({ Bucket: BUCKET_NAME, Key: BUCKET_KEY })
+      .then(response => {
+        done();
+      })
+      .catch(deletedErr => {
+        console.error(deletedErr);
+        done();
+      });
+  })
+
+  // it('lambda should run correctly', (done) => {
     // let event = {
     //   "Records": [
     //     {
@@ -341,7 +352,7 @@ describe('Unit Testing', () => {
     //     }
     //   ]
     // }
-    done();
+    // done();
 
     // lambda.handler(event, null, (err, response) => {
     //   if (err) {
@@ -364,6 +375,6 @@ describe('Unit Testing', () => {
     //   }
       
     // });
-  })
+  // })
 
 });
