@@ -56,30 +56,50 @@ exports.handler = (event, context, callback) => {
               // Insert to Firestore
 
               firestore
-                .collection('temp')
-                .doc(fileName)
-                .set({
-                  fileName
-                })
-                .then(() => {
-                  firestore.collection('licenses').add({
-                    fileName: fileName,
-                    text: plat,
-                    status: true,
-                    createdAt: new Date().toString(),
-                    updatedAt: new Date().toString(),
-                    imgTrue: `https://s3.amazonaws.com/${bucketName}/${fileName}`,
-                    imgFalse: ''
-                  }).then((doc) => {
-                      console.log(doc.id, '<=========== INSERTED');
-                    })
-                    .catch((err) => {
-                      console.error(err);
-                    })
-                })
-                .catch(err => {
-                  console.error(err);
-                })
+                .collection('licenses')
+                .where('text', '==', plat)
+                .where('status', '==', true)
+                .get()
+                  .then(snapshot => {
+
+                    // Uniq license
+                    if (snapshot.empty) {
+                      firestore
+                        .collection('temp')
+                        .doc(fileName)
+                        .set({
+                          fileName
+                        })
+                        .then(() => {
+                          firestore.collection('licenses').add({
+                            fileName: fileName,
+                            text: plat,
+                            status: true,
+                            createdAt: new Date().toString(),
+                            updatedAt: new Date().toString(),
+                            imgTrue: `https://s3.amazonaws.com/${bucketName}/${fileName}`,
+                            imgFalse: ''
+                          }).then((doc) => {
+                              console.log(doc.id, '<=========== INSERTED');
+                            })
+                            .catch((err) => {
+                              console.error(err);
+                            })
+                        })
+                        .catch(err => {
+                          console.error(err);
+                        })
+                    } else {
+                      snapshot.forEach(doc => {
+                        firestore.collection('licenses').doc(doc.id).update({ status: false })
+                        .then(() => console.log(doc.id, '<========== UPDATED'))
+                        .catch(err => console.error(err));
+                      })
+                    }
+                  })
+                  .catch(err => {
+                    console.log('Error getting documents', err);
+                  });
             }
           })
           .catch(err => {
