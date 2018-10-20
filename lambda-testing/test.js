@@ -313,7 +313,6 @@ describe('Unit Testing', () => {
       .doc(platID)
       .delete()
       .then(() => {
-        console.log('data deleted');
         done();
       })
       .catch(err => {
@@ -339,10 +338,19 @@ describe('Unit Testing', () => {
     }
 
     lambda.handler(event, null, (err, response) => {
+      // console.log(response, "<================== LAMDA RESPONSE");
       if (err) {
         console.error(err);
         done();
       } else {
+        assert.exists(response);
+        assert.isNotNull(response);
+        assert.isObject(response);
+        
+        assert.exists(response.type);
+        assert.isNotNull(response.type);
+        assert.isString(response.type);
+
         if (response.type === 'exists') {
           assert.typeOf(response.data, 'string');
           assert.exists(response.data);
