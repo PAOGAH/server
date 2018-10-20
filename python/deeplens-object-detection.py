@@ -18,6 +18,7 @@ import cv2
 import greengrasssdk
 import urllib
 import zipfile
+import json
 
 #boto3 is not installed on device by default.
 
@@ -104,9 +105,8 @@ def push_to_s3(img, index):
 
         timestamp = int(time.time())
         now = datetime.datetime.now()
-        key = "faces/{}_{}/{}_{}/{}_{}.jpg".format(now.month, now.day,
-                                                   now.hour, now.minute,
-                                                   timestamp, index)
+        key = "{}_{}_{}_{}.jpg".format(now.month, now.day,
+                                        timestamp, index)
 
         s3 = boto3.client('s3')
 
@@ -147,7 +147,7 @@ def greengrass_infinite_infer_run():
         model = awscam.Model(model_path, {'GPU': 1})
         client.publish(topic=iot_topic, payload='Object detection model loaded')
         # Set the threshold for detection
-        detection_threshold = 0.70
+        detection_threshold = 0.80
         # The height and width of the training set images
         input_height = 300
         input_width = 300
@@ -172,8 +172,11 @@ def greengrass_infinite_infer_run():
             # Dictionary to be filled with labels and probabilities for MQTT
             cloud_output = {}
             # Get the detected objects and probabilities
+            # client.publish(topic=iot_topic, payload=json.dumps(parsed_inference_results))
             for obj in parsed_inference_results[model_type]:
-                if obj['prob'] > detection_threshold and obj['label'] == 7:
+                # client.publish(topic=iot_topic, payload=json.dumps(obj))
+                isCar = False
+                if obj['prob'] > detection_threshold and (obj['label'] == 7 or obj['label'] == 14) :
                     # Add bounding boxes to full resolution frame
                     xmin = int(xscale * obj['xmin']) \
                            + int((obj['xmin'] - input_width/2) + input_width/2)
@@ -197,9 +200,18 @@ def greengrass_infinite_infer_run():
                                 cv2.FONT_HERSHEY_SIMPLEX, 2.5, (255, 165, 20), 6)
                     # Store label and probability to send to cloud
                     cloud_output[output_map[obj['label']]] = obj['prob']
+                    # Determine vehicle type
+                    if obj['label'] == 7 :
+                        vehicle_type = 'car'
+                    else:
+                        vehicle_type = 'motorbike'
                     # Upload to S3
                     crop_img = frame[ymin:ymax, xmin:xmax]
-                    push_to_s3(crop_img, 'car')
+                    push_to_s3(crop_img, vehicle_type)
+
+                    isCar = True
+                if isCar == True :
+                    break
             # Set the next frame in the local display stream.
             local_display.set_frame_data(frame)
             # Send results to the cloud
@@ -207,7 +219,7 @@ def greengrass_infinite_infer_run():
     except Exception as ex:
         client.publish(topic=iot_topic, payload='Error in object detection lambda: {}'.format(ex))
 
-    # Asynchronously schedule this function to be run again in 15 seconds
-    Timer(15, greengrass_infinite_infer_run).start()
+    # Asynchronously schedule this function to be run again in 25 seconds
+    Timer(25, greengrass_infinite_infer_run).start()
 
 greengrass_infinite_infer_run()
