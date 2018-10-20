@@ -5,16 +5,39 @@
 #                                                    *
 #*****************************************************
 """ A sample lambda for object detection"""
-print 'hello'
 
-
-from threading import Thread, Event
+from threading import Thread, Event, Timer
 import os
+import sys
+import time
+import datetime
 import json
 import numpy as np
 import awscam
 import cv2
 import greengrasssdk
+import urllib
+import zipfile
+
+#boto3 is not installed on device by default.
+
+boto_dir = '/tmp/boto_dir'
+if not os.path.exists(boto_dir):
+    os.mkdir(boto_dir)
+urllib.urlretrieve("https://s3.amazonaws.com/dear-demo/boto_3_dist.zip", "/tmp/boto_3_dist.zip")
+with zipfile.ZipFile("/tmp/boto_3_dist.zip", "r") as zip_ref:
+    zip_ref.extractall(boto_dir)
+sys.path.append(boto_dir)
+
+import boto3
+
+# Create an IoT client for sending to messages to the cloud.
+client = greengrasssdk.client('iot-data')
+
+# The information exchanged between IoT and clould has
+# a topic and a message body.
+# This is the topic that this code uses to send messages to cloud
+iot_topic = '$aws/things/{}/infer'.format(os.environ['AWS_IOT_THING_NAME'])
 
 class LocalDisplay(Thread):
     """ Class for facilitating the local display of inference results
@@ -75,6 +98,31 @@ class LocalDisplay(Thread):
     def join(self):
         self.stop_request.set()
 
+def push_to_s3(img, index):
+    try:
+        bucket_name = "pakogah-project"
+
+        timestamp = int(time.time())
+        now = datetime.datetime.now()
+        key = "faces/{}_{}/{}_{}/{}_{}.jpg".format(now.month, now.day,
+                                                   now.hour, now.minute,
+                                                   timestamp, index)
+
+        s3 = boto3.client('s3')
+
+        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
+        _, jpg_data = cv2.imencode('.jpg', img, encode_param)
+        response = s3.put_object(ACL='public-read',
+                                 Body=jpg_data.tostring(),
+                                 Bucket=bucket_name,
+                                 Key=key)
+
+        client.publish(topic=iot_topic, payload="Response: {}".format(response))
+        client.publish(topic=iot_topic, payload="Face pushed to S3")
+    except Exception as e:
+        msg = "Pushing to S3 failed: " + str(e)
+        client.publish(topic=iot_topic, payload=msg)
+
 def greengrass_infinite_infer_run():
     """ Entry point of the lambda function"""
     try:
@@ -87,9 +135,6 @@ def greengrass_infinite_infer_run():
                       12 : 'dog', 13 : 'horse', 14 : 'motorbike', 15 : 'person',
                       16 : 'pottedplant', 17 : 'sheep', 18 : 'sofa', 19 : 'train',
                       20 : 'tvmonitor'}
-        # Create an IoT client for sending to messages to the cloud.
-        client = greengrasssdk.client('iot-data')
-        iot_topic = '$aws/things/{}/infer'.format(os.environ['AWS_IOT_THING_NAME'])
         # Create a local display instance that will dump the image bytes to a FIFO
         # file that the image can be rendered locally.
         local_display = LocalDisplay('480p')
@@ -102,7 +147,7 @@ def greengrass_infinite_infer_run():
         model = awscam.Model(model_path, {'GPU': 1})
         client.publish(topic=iot_topic, payload='Object detection model loaded')
         # Set the threshold for detection
-        detection_threshold = 0.25
+        detection_threshold = 0.70
         # The height and width of the training set images
         input_height = 300
         input_width = 300
@@ -129,7 +174,6 @@ def greengrass_infinite_infer_run():
             # Get the detected objects and probabilities
             for obj in parsed_inference_results[model_type]:
                 if obj['prob'] > detection_threshold and obj['label'] == 7:
-                    print 'masuk function utama'
                     # Add bounding boxes to full resolution frame
                     xmin = int(xscale * obj['xmin']) \
                            + int((obj['xmin'] - input_width/2) + input_width/2)
@@ -153,11 +197,17 @@ def greengrass_infinite_infer_run():
                                 cv2.FONT_HERSHEY_SIMPLEX, 2.5, (255, 165, 20), 6)
                     # Store label and probability to send to cloud
                     cloud_output[output_map[obj['label']]] = obj['prob']
+                    # Upload to S3
+                    crop_img = frame[ymin:ymax, xmin:xmax]
+                    push_to_s3(crop_img, 'car')
             # Set the next frame in the local display stream.
             local_display.set_frame_data(frame)
             # Send results to the cloud
             client.publish(topic=iot_topic, payload=json.dumps(cloud_output))
     except Exception as ex:
         client.publish(topic=iot_topic, payload='Error in object detection lambda: {}'.format(ex))
+
+    # Asynchronously schedule this function to be run again in 15 seconds
+    Timer(15, greengrass_infinite_infer_run).start()
 
 greengrass_infinite_infer_run()
