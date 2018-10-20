@@ -307,24 +307,59 @@ describe('Unit Testing', () => {
         });
   });
 
-  it('should delete firestore data with status = false', (done) => {
-    const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
-    
-    let detectedText = rekognitionData.TextDetections.map(detected => detected.DetectedText); 
-    let plat = detectedText.find(platText => platCriteria.test(platText));
-
+  it('should delete firestore data', (done) => {
     firestore
       .collection('licenses')
       .doc(platID)
       .delete()
       .then(() => {
+        console.log('data deleted');
         done();
       })
       .catch(err => {
         console.error(err);
         done();
       });
-  })
+  });
+
+  it('lambda should run correctly', (done) => {
+    let event = {
+      "Records": [
+        {
+          "s3": {
+            "bucket": {
+              "name": BUCKET_NAME
+            },
+            "object": {
+              "key": BUCKET_KEY
+            }
+          }
+        }
+      ]
+    }
+
+    lambda.handler(event, null, (err, response) => {
+      if (err) {
+        console.error(err);
+        done();
+      } else {
+        if (response.type === 'exists') {
+          assert.typeOf(response.data, 'string');
+          assert.exists(response.data);
+          assert.isNotNull(response.data);
+
+          done();
+        } else if (response.type === 'not-exists') {
+          assert.typeOf(response.data, 'string');
+          assert.exists(response.data);
+          assert.isNotNull(response.data);
+
+          done();
+        }
+      }
+      
+    });
+  });
 
   it('should delete license plate image correctly', (done) => {
     deleteS3Object({ Bucket: BUCKET_NAME, Key: BUCKET_KEY })
@@ -336,45 +371,5 @@ describe('Unit Testing', () => {
         done();
       });
   })
-
-  // it('lambda should run correctly', (done) => {
-    // let event = {
-    //   "Records": [
-    //     {
-    //       "s3": {
-    //         "bucket": {
-    //           "name": BUCKET_NAME
-    //         },
-    //         "object": {
-    //           "key": BUCKET_KEY
-    //         }
-    //       }
-    //     }
-    //   ]
-    // }
-    // done();
-
-    // lambda.handler(event, null, (err, response) => {
-    //   if (err) {
-    //     console.error(err);
-    //     done();
-    //   } else {
-    //     if (response.type === 'exists') {
-    //       assert.typeOf(response.data, 'string');
-    //       assert.exists(response.data);
-    //       assert.isNotNull(response.data);
-
-    //       done();
-    //     } else if (response.type === 'not-exists') {
-    //       assert.typeOf(response.data, 'string');
-    //       assert.exists(response.data);
-    //       assert.isNotNull(response.data);
-
-    //       done();
-    //     }
-    //   }
-      
-    // });
-  // })
 
 });
