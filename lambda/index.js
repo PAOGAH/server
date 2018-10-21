@@ -24,10 +24,10 @@ exports.handler = (event, context, callback) => {
 
     let params = {
       "Image": {
-          "S3Object": {
-              "Bucket": bucketName,
-              "Name": fileName
-          }
+        "S3Object": {
+          "Bucket": bucketName,
+          "Name": fileName
+        }
       }
     }
     
@@ -91,7 +91,11 @@ exports.handler = (event, context, callback) => {
                         })
                     } else {
                       snapshot.forEach(doc => {
-                        firestore.collection('licenses').doc(doc.id).update({ status: false })
+                        firestore.collection('licenses').doc(doc.id).update({
+                          status: false,
+                          imgFalse: `https://s3.amazonaws.com/${bucketName}/${fileName}`,
+                          updatedAt: new Date().toString()
+                        })
                         .then(() => console.log(doc.id, '<========== UPDATED'))
                         .catch(err => console.error(err));
                       })
