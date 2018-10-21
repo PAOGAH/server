@@ -45,12 +45,15 @@ exports.handler = (event, context, callback) => {
         let detectedText = data.TextDetections.map(detected => detected.DetectedText); 
         let plat = detectedText.find(platText => platCriteria.test(platText));
     
+        console.log(plat, '<============ Plat');
+        console.log(fileName, '<======== File Name');
+
         firestore
           .collection('temp')
-          .doc(fileName)
+          .where('fileName', '==', fileName)
           .get()
-          .then(snapshot => {
-            if (snapshot.exists) {
+          .then(snapshotTemp => {
+            if (!snapshotTemp.empty) {
               // Data already exists
             } else {
               // Insert to Firestore
@@ -60,13 +63,12 @@ exports.handler = (event, context, callback) => {
                 .where('text', '==', plat)
                 .where('status', '==', true)
                 .get()
-                  .then(snapshot => {
-
+                  .then(snapshotLicense => {
                     // Uniq license
-                    if (snapshot.empty) {
+                    if (snapshotLicense.empty) {
                       firestore
                         .collection('temp')
-                        .doc(fileName)
+                        .doc('license')
                         .set({
                           fileName
                         })
@@ -90,7 +92,7 @@ exports.handler = (event, context, callback) => {
                           console.error(err);
                         })
                     } else {
-                      snapshot.forEach(doc => {
+                      snapshotLicense.forEach(doc => {
                         firestore.collection('licenses').doc(doc.id).update({
                           status: false,
                           imgFalse: `https://s3.amazonaws.com/${bucketName}/${fileName}`,
