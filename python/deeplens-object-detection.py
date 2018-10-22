@@ -105,8 +105,9 @@ def push_to_s3(img, index):
 
         timestamp = int(time.time())
         now = datetime.datetime.now()
-        key = "{}_{}_{}_{}.jpg".format(now.month, now.day,
-                                        timestamp, index)
+        key = "{}_{}_{}_{}_{}.jpg".format(now.month, now.day,
+                                        now.hour, now.minute,
+                                        index)
 
         s3 = boto3.client('s3')
 
@@ -118,7 +119,7 @@ def push_to_s3(img, index):
                                  Key=key)
 
         client.publish(topic=iot_topic, payload="Response: {}".format(response))
-        client.publish(topic=iot_topic, payload="Face pushed to S3")
+        client.publish(topic=iot_topic, payload="Photo pushed to S3")
     except Exception as e:
         msg = "Pushing to S3 failed: " + str(e)
         client.publish(topic=iot_topic, payload=msg)
@@ -147,7 +148,7 @@ def greengrass_infinite_infer_run():
         model = awscam.Model(model_path, {'GPU': 1})
         client.publish(topic=iot_topic, payload='Object detection model loaded')
         # Set the threshold for detection
-        detection_threshold = 0.80
+        detection_threshold = 0.85
         # The height and width of the training set images
         input_height = 300
         input_width = 300
