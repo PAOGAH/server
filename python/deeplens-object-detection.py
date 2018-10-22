@@ -148,7 +148,7 @@ def greengrass_infinite_infer_run():
         model = awscam.Model(model_path, {'GPU': 1})
         client.publish(topic=iot_topic, payload='Object detection model loaded')
         # Set the threshold for detection
-        detection_threshold = 0.85
+        detection_threshold = 0.80
         # The height and width of the training set images
         input_height = 300
         input_width = 300
