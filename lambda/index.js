@@ -24,10 +24,10 @@ exports.handler = (event, context, callback) => {
 
     let params = {
       "Image": {
-          "S3Object": {
-              "Bucket": bucketName,
-              "Name": fileName
-          }
+        "S3Object": {
+          "Bucket": bucketName,
+          "Name": fileName
+        }
       }
     }
     
@@ -45,39 +45,106 @@ exports.handler = (event, context, callback) => {
         let detectedText = data.TextDetections.map(detected => detected.DetectedText); 
         let plat = detectedText.find(platText => platCriteria.test(platText));
     
-        firestore
-          .collection('licenses')
-          .where('text', '==', plat)
-          .where('status', '==', true)
-          .get()
-            .then(snapshot => {
+        console.log(plat, '<============ Plat');
+        console.log(fileName, '<======== File Name');
 
-              // Uniq license
-              if (snapshot.empty) {
-                firestore.collection('licenses').add({
-                  text: plat,
-                  status: true,
-                  createdAt: new Date().toString(),
-                  updatedAt: new Date().toString(),
-                  imgTrue: `https://s3.amazonaws.com/${bucketName}/${fileName}`,
-                  imgFalse: ''
-                }).then((doc) => {
-                    console.log(doc.id, '<=========== INSERTED');
+        firestore
+          .collection('temp')
+          .where('fileName', '==', fileName)
+          .get()
+          .then(snapshotTemp => {
+            if (!snapshotTemp.empty) {
+              // Data already exists
+            } else {
+              // Insert to Firestore
+
+              firestore
+                .collection('licenses')
+                .where('text', '==', plat)
+                .where('status', '==', true)
+                .get()
+                  .then(snapshotLicense => {
+                    // Uniq license
+                    if (snapshotLicense.empty) {
+                      firestore
+                        .collection('temp')
+                        .doc('license')
+                        .set({
+                          fileName
+                        })
+                        .then(() => {
+                          firestore.collection('licenses').add({
+                            fileName: fileName,
+                            text: plat,
+                            status: true,
+                            createdAt: new Date().toString(),
+                            updatedAt: new Date().toString(),
+                            imgTrue: `https://s3.amazonaws.com/${bucketName}/${fileName}`,
+                            imgFalse: ''
+                          }).then((doc) => {
+                              console.log(doc.id, '<=========== INSERTED');
+                            })
+                            .catch((err) => {
+                              console.error(err);
+                            })
+                        })
+                        .catch(err => {
+                          console.error(err);
+                        })
+                    } else {
+                      snapshotLicense.forEach(doc => {
+                        firestore.collection('licenses').doc(doc.id).update({
+                          status: false,
+                          imgFalse: `https://s3.amazonaws.com/${bucketName}/${fileName}`,
+                          updatedAt: new Date().toString()
+                        })
+                        .then(() => console.log(doc.id, '<========== UPDATED'))
+                        .catch(err => console.error(err));
+                      })
+                    }
                   })
-                  .catch((err) => {
-                    console.error(err);
-                  })
-              } else {
-                snapshot.forEach(doc => {
-                  firestore.collection('licenses').doc(doc.id).update({ status: false })
-                  .then(() => console.log(doc.id, '<========== UPDATED'))
-                  .catch(err => console.error(err));
-                })
-              }
-            })
-            .catch(err => {
-              console.log('Error getting documents', err);
-            });
+                  .catch(err => {
+                    console.log('Error getting documents', err);
+                  });
+            }
+          })
+          .catch(err => {
+            console.log('Error getting documents', err);
+          });
+
+        // firestore
+        //   .collection('licenses')
+        //   .where('text', '==', plat)
+        //   .where('status', '==', true)
+        //   .get()
+        //     .then(snapshot => {
+
+        //       // Uniq license
+        //       if (snapshot.empty) {
+        //         firestore.collection('licenses').add({
+        //           text: plat,
+        //           status: true,
+        //           createdAt: new Date().toString(),
+        //           updatedAt: new Date().toString(),
+        //           imgTrue: `https://s3.amazonaws.com/${bucketName}/${fileName}`,
+        //           imgFalse: ''
+        //         }).then((doc) => {
+        //             console.log(doc.id, '<=========== INSERTED');
+        //           })
+        //           .catch((err) => {
+        //             console.error(err);
+        //           })
+        //       } else {
+        //         snapshot.forEach(doc => {
+        //           firestore.collection('licenses').doc(doc.id).update({ status: false })
+        //           .then(() => console.log(doc.id, '<========== UPDATED'))
+        //           .catch(err => console.error(err));
+        //         })
+        //       }
+        //     })
+        //     .catch(err => {
+        //       console.log('Error getting documents', err);
+        //     });
       }
     });
 
