@@ -40,7 +40,7 @@ exports.handler = (event, context, callback) => {
       else {
         console.log('Want to insert to database');
 
-        const platCriteria = /[a-z]{1, 2}+\s[0-9]+\s[a-z]+/i
+        const platCriteria = /[a-z]{1,2}\s[0-9]+\s[a-z]+/i
     
         let detectedText = data.TextDetections.map(detected => detected.DetectedText); 
         let plat = detectedText.find(platText => platCriteria.test(platText));
