@@ -342,34 +342,20 @@ describe('Lambda Function', () => {
     }
 
     lambda.handler(event, null, (err, response) => {
-      if (err) {
-        console.error(err);
-        assert.typeOf(err.message, 'string');
+      assert.typeOf(response.id, 'string');
+      assert.typeOf(response.plat, 'string');
 
-        assert.exists(err.message);
-        assert.exists(err.data);
+      assert.exists(response.id);
+      assert.exists(response.plat);
 
-        assert.isNotNull(err.message);
-        assert.isNotNull(err.data);
-
-        done();
-      } else {
-        assert.typeOf(response.id, 'string');
-        assert.typeOf(response.plat, 'string');
-
-        assert.exists(response.id);
-        assert.exists(response.plat);
-
-        assert.isNotNull(response.id);
-        assert.isNotNull(response.plat);
+      assert.isNotNull(response.id);
+      assert.isNotNull(response.plat);
 
 
-        platID = response.id;
-        platText = response.plat;
+      platID = response.id;
+      platText = response.plat;
 
-        done();
-      }
-      
+      done();
     });
   });
 
@@ -390,33 +376,20 @@ describe('Lambda Function', () => {
     }
 
     lambda.handler(event, null, (err, response) => {
-      if (err) {
-        console.error(err);
-        assert.typeOf(err.message, 'string');
+      assert.typeOf(response.id, 'string');
+      assert.typeOf(response.plat, 'string');
 
-        assert.exists(err.message);
-        assert.exists(err.data);
+      assert.exists(response.id);
+      assert.exists(response.plat);
 
-        assert.isNotNull(err.message);
-        assert.isNotNull(err.data);
-        done();
-      } else {
-        assert.typeOf(response.id, 'string');
-        assert.typeOf(response.plat, 'string');
-
-        assert.exists(response.id);
-        assert.exists(response.plat);
-
-        assert.isNotNull(response.id);
-        assert.isNotNull(response.plat);
+      assert.isNotNull(response.id);
+      assert.isNotNull(response.plat);
 
 
-        platID = response.id;
-        platText = response.plat;
+      platID = response.id;
+      platText = response.plat;
 
-        done();
-      }
-      
+      done();
     });
   });
 
