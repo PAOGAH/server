@@ -17,7 +17,7 @@ from threading import Thread
 client = greengrasssdk.client('iot-data')
 
 iotTopic = '$aws/things/{}/infer'.format(os.environ['AWS_IOT_THING_NAME'])
-bucket_name = '<BUCKET_NAME>'
+bucket_name = 'pakogah-project'
 
 ret, frame = awscam.getLastFrame()
 ret,jpeg = cv2.imencode('.jpg', frame)
@@ -41,8 +41,13 @@ class FIFO_Thread(Thread):
 
 def greengrass_infinite_infer_run():
 	try:
-		modelPath = "/opt/awscam/artifacts/mxnet_deploy_ssd_FP16_FUSED.xml"
+		modelPath = "/opt/awscam/artifacts/mxnet_deploy_ssd_resnet50_300_FP16_FUSED.xml"
 		modelType = "ssd"
+		output_map = {1: 'aeroplane', 2: 'bicycle', 3: 'bird', 4: 'boat', 5: 'bottle', 6: 'bus',
+                      7 : 'car', 8 : 'cat', 9 : 'chair', 10 : 'cow', 11 : 'dinning table',
+                      12 : 'dog', 13 : 'horse', 14 : 'motorbike', 15 : 'person',
+                      16 : 'pottedplant', 17 : 'sheep', 18 : 'sofa', 19 : 'train',
+                      20 : 'tvmonitor'}
 		input_width = 300
 		input_height = 300
 		prob_thresh = 0.1
@@ -98,17 +103,22 @@ def greengrass_infinite_infer_run():
 				ymax = int( yscale * obj['ymax'] )
 				cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), rgb_color, 4)
 				label += '"{}": {:.2f},'.format("prob", obj['prob'] )
-				label_show = '{}: {:.2f}'.format(str(obj['label']), obj['prob'] )
+				label_show = '{}: {:.2f}'.format(output_map[obj['label']], obj['prob'] )
 				cv2.putText(frame, label_show, (xmin, ymin-15), font, 0.5, rgb_color, 4)
 				msg = "true"
 
-				if (time_now >= cooldown) and obj['prob'] >= 0.60:
+				if (obj['label'] == 7 or obj['label'] == 14) and (time_now >= cooldown) and obj['prob'] >= 0.80:
 					# Uploading to Amazon S3 if cooldown and countdown allow it
 					if onCountdown and time_now >= countdown:
 						message = "uploading to s3..."
 						client.publish(topic=iotTopic, payload = message)
 
-						key = 'images/frame-' + time.strftime("%Y%m%d-%H%M%S") + '.jpg'
+						now = datetime.datetime.now()
+						if obj['label'] == 7:
+							vehicle_type = 'car'
+						else:
+							vehicle_type = 'motorbike'
+						key = "{}_{}_{}_{}_{}.jpg".format(now.month, now.day, now.hour, now.minute, vehicle_type)
 						session = Session()
 						s3 = session.create_client('s3')
 
