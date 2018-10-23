@@ -359,6 +359,8 @@ describe('Lambda Function', () => {
         assert.typeOf(response, 'string');
         assert.exists(response);
         assert.isNotNull(response);
+
+        done();
       }
       
     });
