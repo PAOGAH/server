@@ -66,7 +66,7 @@ exports.handler = (event, context, callback) => {
                     // console.log(doc.id, '<=========== INSERTED');
                   })
                   .catch((err) => {
-                    callback(err, null);
+                    callback({ message: 'failed to add new license plate document', data: err }, null);
                     // console.error(err);
                   })
               } else {
@@ -84,14 +84,14 @@ exports.handler = (event, context, callback) => {
                     // console.log(doc.id, '<========== UPDATED')
                   })
                   .catch(err => {
-                    callback(err, null);
+                    callback({ message: 'failed to update data in firebase', data: err }, null);
                     // console.error(err);
                   });
                 })
               }
             })
             .catch(err => {
-              callback(err, null);
+              callback({ message: 'failed to get firebase data where license == param and status === true', data: err }, null);
               // console.log('Error getting documents', err);
             });
       }
