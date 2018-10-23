@@ -440,9 +440,9 @@ describe('Lambda Function', () => {
       assert.typeOf(err.data['code'], 'string');
       assert.typeOf(err.data['statusCode'], 'number');
 
+
       assert.exists(err.message);
       assert.exists(err.data);
-      assert.exists(err.data['InvalidParameterException']);
       assert.exists(err.data['message']);
       assert.exists(err.data['code']);
       assert.exists(err.data['statusCode']);
@@ -454,7 +454,47 @@ describe('Lambda Function', () => {
       assert.isNotNull(err.data['code']);
       assert.isNotNull(err.data['statusCode']);
 
-      assert.equal(err.data['code'], 'InvalidParameterException');
+      assert.equal(err.data['statusCode'], 400);
+      done();
+    });
+  });
+
+  it('checking firebase get data error', (done) => {
+    let event = {
+      "Records": [
+        {
+          "s3": {
+            "bucket": {
+              "name": BUCKET_NAME
+            },
+            "object": {
+              "key": BUCKET_KEY
+            }
+          }
+        }
+      ]
+    }
+
+    lambda.handler(event, null, (err, response) => {
+      assert.typeOf(err.message, 'string');
+      assert.typeOf(err.data['message'], 'string');
+      assert.typeOf(err.data['code'], 'string');
+      assert.typeOf(err.data['statusCode'], 'number');
+
+
+      assert.exists(err.message);
+      assert.exists(err.data);
+      assert.exists(err.data['message']);
+      assert.exists(err.data['code']);
+      assert.exists(err.data['statusCode']);
+
+      assert.isNotNull(err.message);
+      assert.isNotNull(err.data);
+      assert.isNotNull(err.data['InvalidParameterException']);
+      assert.isNotNull(err.data['message']);
+      assert.isNotNull(err.data['code']);
+      assert.isNotNull(err.data['statusCode']);
+
       assert.equal(err.data['statusCode'], 400);
       done();
     });
