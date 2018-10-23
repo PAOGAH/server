@@ -35,6 +35,7 @@ exports.handler = (event, context, callback) => {
       // console.log('Get image labels');
 
       if (err) {
+        console.error('masuk error rekognition');
         callback({ message: 'rekognition detect text error', data: err }, null);
       }
       else {
