@@ -35,7 +35,6 @@ exports.handler = (event, context, callback) => {
       // console.log('Get image labels');
 
       if (err) {
-        console.error('masuk error rekognition');
         callback({ message: 'rekognition detect text error', data: err }, null);
       }
       else {
@@ -64,37 +63,16 @@ exports.handler = (event, context, callback) => {
                   imgFalse: ''
                 }).then((doc) => {
                     callback(null, { id: doc.id, plat: plat});
-                    // console.log(doc.id, '<=========== INSERTED');
-                  })
-                  .catch((err) => {
-                    callback({ message: 'failed to add new license plate document', data: err }, null);
-                    // console.error(err);
                   })
               } else {
                 snapshot.forEach(doc => {
                   firestore.collection('licenses').doc(doc.id).update({ status: false })
                   .then(() => {
-                    // deleteS3Object(params)
-                    // .then(() => {
-                    //   return callback(null, { type: 'exists', data: doc.id });  
-                    // })
-                    // .catch(err => {
-                    //   return callback(err, null);  
-                    // })
                     callback(null, { id: doc.id, plat: plat});
-                    // console.log(doc.id, '<========== UPDATED')
                   })
-                  .catch(err => {
-                    callback({ message: 'failed to update data in firebase', data: err }, null);
-                    // console.error(err);
-                  });
                 })
               }
             })
-            .catch(err => {
-              callback({ message: 'failed to get firebase data where license == param and status === true', data: err }, null);
-              // console.log('Error getting documents', err);
-            });
       }
     });
 };
