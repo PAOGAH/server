@@ -352,7 +352,6 @@ describe('Lambda Function', () => {
     }
 
     lambda.handler(event, null, (err, response) => {
-      // console.log(response, "<================== LAMDA RESPONSE");
       if (err) {
         console.error(err);
         done();
@@ -365,19 +364,9 @@ describe('Lambda Function', () => {
         assert.isNotNull(response.type);
         assert.isString(response.type);
 
-        if (response.type === 'exists') {
-          assert.typeOf(response.data, 'string');
-          assert.exists(response.data);
-          assert.isNotNull(response.data);
-
-          done();
-        } else if (response.type === 'not-exists') {
-          assert.typeOf(response.data, 'string');
-          assert.exists(response.data);
-          assert.isNotNull(response.data);
-
-          done();
-        }
+        assert.typeOf(response.data, 'string');
+        assert.exists(response.data);
+        assert.isNotNull(response.data);
       }
       
     });
