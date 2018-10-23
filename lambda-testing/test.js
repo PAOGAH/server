@@ -17,6 +17,7 @@ AWS.config.update({
 // Save Rekognition Data
 let rekognitionData;
 let platID;
+let platText;
 
 function uploadToS3(params) {
   return new Promise ((resolve, reject) => {
@@ -321,17 +322,6 @@ describe('Unit Testing', () => {
       });
   });
 
-  it('should delete license plate image correctly', (done) => {
-    deleteS3Object({ Bucket: BUCKET_NAME, Key: BUCKET_KEY })
-      .then(response => {
-        done();
-      })
-      .catch(deletedErr => {
-        console.error(deletedErr);
-        done();
-      });
-  })
-
 });
 
 describe('Lambda Function', () => {
@@ -356,9 +346,18 @@ describe('Lambda Function', () => {
         console.error(err);
         done();
       } else {
-        assert.typeOf(response, 'string');
-        assert.exists(response);
-        assert.isNotNull(response);
+        assert.typeOf(response.id, 'string');
+        assert.typeOf(response.plat, 'string');
+
+        assert.exists(response.id);
+        assert.exists(response.plat);
+
+        assert.isNotNull(response.id);
+        assert.isNotNull(response.plat);
+
+
+        platID = response.id;
+        platText = response.plat;
 
         done();
       }
@@ -367,6 +366,67 @@ describe('Lambda Function', () => {
   });
 
   it('should update status if input license plate equal in database', (done) => {
+    let event = {
+      "Records": [
+        {
+          "s3": {
+            "bucket": {
+              "name": BUCKET_NAME
+            },
+            "object": {
+              "key": BUCKET_KEY
+            }
+          }
+        }
+      ]
+    }
 
-  })
+    lambda.handler(event, null, (err, response) => {
+      if (err) {
+        console.error(err);
+        done();
+      } else {
+        assert.typeOf(response.id, 'string');
+        assert.typeOf(response.plat, 'string');
+
+        assert.exists(response.id);
+        assert.exists(response.plat);
+
+        assert.isNotNull(response.id);
+        assert.isNotNull(response.plat);
+
+
+        platID = response.id;
+        platText = response.plat;
+
+        done();
+      }
+      
+    });
+  });
+
+  it('should delete testing image in S3', (done) => {
+    deleteS3Object({ Bucket: BUCKET_NAME, Key: BUCKET_KEY })
+      .then(response => {
+        done();
+      })
+      .catch(deletedErr => {
+        console.error(deletedErr);
+        done();
+      });
+  });
+
+  it('should delete firestore testing data', (done) => {
+    firestore
+      .collection('licenses')
+      .doc(platID)
+      .delete()
+      .then(() => {
+        done();
+      })
+      .catch(err => {
+        console.error(err);
+        done();
+      });
+  });
 });
