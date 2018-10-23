@@ -333,7 +333,7 @@ describe('Unit Testing', () => {
               "key": BUCKET_KEY
             }
           }
-        }
+        }same
       ]
     }
 
@@ -380,4 +380,14 @@ describe('Unit Testing', () => {
       });
   })
 
+});
+
+describe('Lambda Function', () => {
+  it('should insert unique license plate to database', (done) => {
+
+  });
+
+  it('should update status if input license plate equal in database', (done) => {
+
+  })
 });
