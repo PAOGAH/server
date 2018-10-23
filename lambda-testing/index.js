@@ -62,7 +62,7 @@ exports.handler = (event, context, callback) => {
                   imgTrue: `https://s3.amazonaws.com/${bucketName}/${fileName}`,
                   imgFalse: ''
                 }).then((doc) => {
-                    callback(null, { type: 'not-exists', data: doc.id });
+                    callback(null, doc.id);
                     // console.log(doc.id, '<=========== INSERTED');
                   })
                   .catch((err) => {
@@ -80,7 +80,7 @@ exports.handler = (event, context, callback) => {
                     // .catch(err => {
                     //   return callback(err, null);  
                     // })
-                    callback(null, { type: 'exists', data: doc.id });
+                    callback(null, doc.id);
                     // console.log(doc.id, '<========== UPDATED')
                   })
                   .catch(err => {
