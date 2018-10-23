@@ -35,7 +35,7 @@ exports.handler = (event, context, callback) => {
       // console.log('Get image labels');
 
       if (err) {
-        callback(err, null);
+        callback({ message: 'rekognition detect text error', data: err }, null);
       }
       else {
         // console.log('Want to insert to database');
