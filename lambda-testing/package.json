@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "aws-sdk": "^2.337.0",
+    "chai": "^4.2.0",
+    "firebase": "^5.5.4",
+    "nyc": "^13.1.0"
+  },
+  "scripts": {
+    "test": "mocha --exit --timeout 5000",
+    "coverage": "nyc mocha --exit --timeout=5000"
+  }
+}
