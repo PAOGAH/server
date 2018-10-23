@@ -35,7 +35,7 @@ exports.handler = (event, context, callback) => {
       // console.log('Get image labels');
 
       if (err) {
-        return callback(err, null);
+        callback({ message: 'rekognition detect text error', data: err }, null);
       }
       else {
         // console.log('Want to insert to database');
@@ -62,31 +62,17 @@ exports.handler = (event, context, callback) => {
                   imgTrue: `https://s3.amazonaws.com/${bucketName}/${fileName}`,
                   imgFalse: ''
                 }).then((doc) => {
-                    return callback(null, { type: 'not-exists', data: doc.id });
-                    // console.log(doc.id, '<=========== INSERTED');
-                  })
-                  .catch((err) => {
-                    return callback(err, null);
-                    // console.error(err);
+                    callback(null, { id: doc.id, plat: plat});
                   })
               } else {
                 snapshot.forEach(doc => {
                   firestore.collection('licenses').doc(doc.id).update({ status: false })
                   .then(() => {
-                    return callback(null, { type: 'exists', data: doc.id });
-                    // console.log(doc.id, '<========== UPDATED')
+                    callback(null, { id: doc.id, plat: plat});
                   })
-                  .catch(err => {
-                    return callback(err, null);
-                    // console.error(err);
-                  });
                 })
               }
             })
-            .catch(err => {
-              return callback(err, null);
-              // console.log('Error getting documents', err);
-            });
       }
     });
 };

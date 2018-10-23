@@ -17,6 +17,7 @@ AWS.config.update({
 // Save Rekognition Data
 let rekognitionData;
 let platID;
+let platText;
 
 function uploadToS3(params) {
   return new Promise ((resolve, reject) => {
@@ -321,7 +322,10 @@ describe('Unit Testing', () => {
       });
   });
 
-  it('lambda should run correctly', (done) => {
+});
+
+describe('Lambda Function', () => {
+  it('should insert unique license plate to database', (done) => {
     let event = {
       "Records": [
         {
@@ -338,38 +342,58 @@ describe('Unit Testing', () => {
     }
 
     lambda.handler(event, null, (err, response) => {
-      // console.log(response, "<================== LAMDA RESPONSE");
-      if (err) {
-        console.error(err);
-        done();
-      } else {
-        assert.exists(response);
-        assert.isNotNull(response);
-        assert.isObject(response);
-        
-        assert.exists(response.type);
-        assert.isNotNull(response.type);
-        assert.isString(response.type);
+      assert.typeOf(response.id, 'string');
+      assert.typeOf(response.plat, 'string');
 
-        if (response.type === 'exists') {
-          assert.typeOf(response.data, 'string');
-          assert.exists(response.data);
-          assert.isNotNull(response.data);
+      assert.exists(response.id);
+      assert.exists(response.plat);
 
-          done();
-        } else if (response.type === 'not-exists') {
-          assert.typeOf(response.data, 'string');
-          assert.exists(response.data);
-          assert.isNotNull(response.data);
+      assert.isNotNull(response.id);
+      assert.isNotNull(response.plat);
 
-          done();
-        }
-      }
-      
+
+      platID = response.id;
+      platText = response.plat;
+
+      done();
     });
   });
 
-  it('should delete license plate image correctly', (done) => {
+  it('should update status if input license plate equal in database', (done) => {
+    let event = {
+      "Records": [
+        {
+          "s3": {
+            "bucket": {
+              "name": BUCKET_NAME
+            },
+            "object": {
+              "key": BUCKET_KEY
+            }
+          }
+        }
+      ]
+    }
+
+    lambda.handler(event, null, (err, response) => {
+      assert.typeOf(response.id, 'string');
+      assert.typeOf(response.plat, 'string');
+
+      assert.exists(response.id);
+      assert.exists(response.plat);
+
+      assert.isNotNull(response.id);
+      assert.isNotNull(response.plat);
+
+
+      platID = response.id;
+      platText = response.plat;
+
+      done();
+    });
+  });
+
+  it('should delete testing image in S3', (done) => {
     deleteS3Object({ Bucket: BUCKET_NAME, Key: BUCKET_KEY })
       .then(response => {
         done();
@@ -378,6 +402,60 @@ describe('Unit Testing', () => {
         console.error(deletedErr);
         done();
       });
-  })
+  });
 
+  it('should delete firestore testing data', (done) => {
+    firestore
+      .collection('licenses')
+      .doc(platID)
+      .delete()
+      .then(() => {
+        done();
+      })
+      .catch(err => {
+        console.error(err);
+        done();
+      });
+  });
+
+  it('checking rekognition error', (done) => {
+    let event = {
+      "Records": [
+        {
+          "s3": {
+            "bucket": {
+              "name": undefined
+            },
+            "object": {
+              "key": undefined
+            }
+          }
+        }
+      ]
+    }
+
+    lambda.handler(event, null, (err, response) => {
+      assert.typeOf(err.message, 'string');
+      assert.typeOf(err.data['message'], 'string');
+      assert.typeOf(err.data['code'], 'string');
+      assert.typeOf(err.data['statusCode'], 'number');
+
+
+      assert.exists(err.message);
+      assert.exists(err.data);
+      assert.exists(err.data['message']);
+      assert.exists(err.data['code']);
+      assert.exists(err.data['statusCode']);
+
+      assert.isNotNull(err.message);
+      assert.isNotNull(err.data);
+      assert.isNotNull(err.data['InvalidParameterException']);
+      assert.isNotNull(err.data['message']);
+      assert.isNotNull(err.data['code']);
+      assert.isNotNull(err.data['statusCode']);
+
+      assert.equal(err.data['statusCode'], 400);
+      done();
+    });
+  });
 });
