@@ -451,10 +451,10 @@ describe('Lambda Function', () => {
         {
           "s3": {
             "bucket": {
-              "name": BUCKET_NAME
+              "name": undefined
             },
             "object": {
-              "key": BUCKET_KEY
+              "key": undefined
             }
           }
         }
@@ -462,33 +462,28 @@ describe('Lambda Function', () => {
     }
 
     lambda.handler(event, null, (err, response) => {
-      if (err) {
-        console.error(err);
-        assert.typeOf(err.message, 'string');
+      assert.typeOf(err.message, 'string');
+      assert.typeOf(err.data['message'], 'string');
+      assert.typeOf(err.data['code'], 'string');
+      assert.typeOf(err.data['statusCode'], 'number');
 
-        assert.exists(err.message);
-        assert.exists(err.data);
+      assert.exists(err.message);
+      assert.exists(err.data);
+      assert.exists(err.data['InvalidParameterException']);
+      assert.exists(err.data['message']);
+      assert.exists(err.data['code']);
+      assert.exists(err.data['statusCode']);
 
-        assert.isNotNull(err.message);
-        assert.isNotNull(err.data);
-        done();
-      } else {
-        assert.typeOf(response.id, 'string');
-        assert.typeOf(response.plat, 'string');
+      assert.isNotNull(err.message);
+      assert.isNotNull(err.data);
+      assert.isNotNull(err.data['InvalidParameterException']);
+      assert.isNotNull(err.data['message']);
+      assert.isNotNull(err.data['code']);
+      assert.isNotNull(err.data['statusCode']);
 
-        assert.exists(response.id);
-        assert.exists(response.plat);
-
-        assert.isNotNull(response.id);
-        assert.isNotNull(response.plat);
-
-
-        platID = response.id;
-        platText = response.plat;
-
-        done();
-      }
-      
+      assert.equal(err.data['code'], 'InvalidParameterException');
+      assert.equal(err.data['statusCode'], 400);
+      done();
     });
   });
 });
