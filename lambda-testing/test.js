@@ -347,7 +347,7 @@ describe('Lambda Function', () => {
               "key": BUCKET_KEY
             }
           }
-        }same
+        }
       ]
     }
 
@@ -356,17 +356,9 @@ describe('Lambda Function', () => {
         console.error(err);
         done();
       } else {
+        assert.typeOf(response, 'string');
         assert.exists(response);
         assert.isNotNull(response);
-        assert.isObject(response);
-        
-        assert.exists(response.type);
-        assert.isNotNull(response.type);
-        assert.isString(response.type);
-
-        assert.typeOf(response.data, 'string');
-        assert.exists(response.data);
-        assert.isNotNull(response.data);
       }
       
     });
