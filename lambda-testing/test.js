@@ -344,6 +344,14 @@ describe('Lambda Function', () => {
     lambda.handler(event, null, (err, response) => {
       if (err) {
         console.error(err);
+        assert.typeOf(err.message, 'string');
+
+        assert.exists(err.message);
+        assert.exists(err.data);
+
+        assert.isNotNull(err.message);
+        assert.isNotNull(err.data);
+
         done();
       } else {
         assert.typeOf(response.id, 'string');
@@ -384,6 +392,13 @@ describe('Lambda Function', () => {
     lambda.handler(event, null, (err, response) => {
       if (err) {
         console.error(err);
+        assert.typeOf(err.message, 'string');
+
+        assert.exists(err.message);
+        assert.exists(err.data);
+
+        assert.isNotNull(err.message);
+        assert.isNotNull(err.data);
         done();
       } else {
         assert.typeOf(response.id, 'string');
@@ -428,5 +443,52 @@ describe('Lambda Function', () => {
         console.error(err);
         done();
       });
+  });
+
+  it('checking rekognition error', (done) => {
+    let event = {
+      "Records": [
+        {
+          "s3": {
+            "bucket": {
+              "name": BUCKET_NAME
+            },
+            "object": {
+              "key": BUCKET_KEY
+            }
+          }
+        }
+      ]
+    }
+
+    lambda.handler(event, null, (err, response) => {
+      if (err) {
+        console.error(err);
+        assert.typeOf(err.message, 'string');
+
+        assert.exists(err.message);
+        assert.exists(err.data);
+
+        assert.isNotNull(err.message);
+        assert.isNotNull(err.data);
+        done();
+      } else {
+        assert.typeOf(response.id, 'string');
+        assert.typeOf(response.plat, 'string');
+
+        assert.exists(response.id);
+        assert.exists(response.plat);
+
+        assert.isNotNull(response.id);
+        assert.isNotNull(response.plat);
+
+
+        platID = response.id;
+        platText = response.plat;
+
+        done();
+      }
+      
+    });
   });
 });
