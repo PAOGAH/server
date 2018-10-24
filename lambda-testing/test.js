@@ -241,7 +241,7 @@ describe('Unit Testing', () => {
       });
   });
 
-  it('should get firebase data correctly', (done) => {
+  it('should get license data correctly', (done) => {
     firestore
       .collection('licenses')
       .where('text', '==', platText)
@@ -255,9 +255,6 @@ describe('Unit Testing', () => {
           done();
 
         } else {
-          console.log(snapshot);
-          console.log(snapshot[0], '<===========');
-
           snapshot.forEach(doc => {
             let data = doc.data();
             
