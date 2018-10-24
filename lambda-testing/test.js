@@ -185,8 +185,16 @@ describe('Unit Testing', () => {
       .then(rekogResult => {
         done();
       })
-      .catch(rekogErr => {
-        console.log(rekogErr, '<============== RKOG EROR');
+      .catch(err => {
+        assert.exists(err);
+        assert.exists(err.message);
+        assert.exists(err.code);
+        assert.exists(err.statusCode);
+
+        assert.isObject(err);
+        assert.isString(err.message);
+        assert.isString(err.code);
+        assert.isNumber(err.statusCode);
         done();
       });
   });
