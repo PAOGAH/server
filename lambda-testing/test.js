@@ -6,6 +6,7 @@ const fs = require('fs');
 const { firestore } = require('./firebase.config');
 const rekognition = require('./rekognition');
 const uploadToS3 = require('./s3');
+const getByLicense = require('./getByLicense');
 const lambda = require('./index');
 
 const BUCKET_NAME = 'pakogah-project2';
@@ -102,7 +103,7 @@ describe('Unit Testing', () => {
       })
   });
 
-  it('should failed when upload to S3', (done) => {
+  it('should failed when upload to AWS S3', (done) => {
     let imageBuffer = fs.readFileSync('platnya.png');
     let params = { Bucket: undefined, Key: undefined, Body: imageBuffer };
 
@@ -165,31 +166,46 @@ describe('Unit Testing', () => {
         done();
       })
       .catch(rekogErr => {
-        console.error(rekogErr);
         done();
       });
   });
 
-  it('checking if firestore response is empty', (done) => {
+  it('should failed detect text in image using AWS Rekognition', (done) => {
+
+    let rekogParams = {
+      "Image": {
+        "S3Object": {
+          "Bucket": undefined,
+          "Name": undefined
+        }
+      }
+    }
+
+    rekognition(rekogParams)
+      .then(rekogResult => {
+        done();
+      })
+      .catch(rekogErr => {
+        console.log(rekogErr, '<============== RKOG EROR');
+        done();
+      });
+  });
+
+  it('should get empty data because license plate must unique', (done) => {
     const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
     
     let detectedText = rekognitionData.TextDetections.map(detected => detected.DetectedText); 
     let plat = detectedText.find(platText => platCriteria.test(platText));
 
-    firestore
-      .collection('licenses')
-      .where('text', '==', plat)
-      .where('status', '==', true)
-      .get()
+    getByLicense(plat)
       .then(snapshot => {
         assert.exists(snapshot.empty);
         assert.isNotNull(snapshot.empty);
         assert.isBoolean(snapshot.empty);
-        
+
         done();
       })
       .catch(err => {
-        console.error(err);
         done();
       });
   });
