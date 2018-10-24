@@ -110,8 +110,13 @@ describe('Unit Testing', () => {
 
     rekognition(rekogParams)
       .then(rekogResult => {
+        const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
+    
+        let detectedText = rekognitionData.TextDetections.map(detected => detected.DetectedText);
+        let plat = detectedText.find(platText => platCriteria.test(platText));
 
         rekognitionData = rekogResult
+        platText = plat;
 
         assert.isObject(rekogResult);
         assert.isObject(rekogResult['TextDetections'][0]['Geometry']);
@@ -171,12 +176,8 @@ describe('Unit Testing', () => {
   });
 
   it('should get empty data because license plate must unique', (done) => {
-    const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
-    
-    let detectedText = rekognitionData.TextDetections.map(detected => detected.DetectedText); 
-    let plat = detectedText.find(platText => platCriteria.test(platText));
 
-    getByLicense(plat)
+    getByLicense(platText)
       .then(snapshot => {
         assert.exists(snapshot.empty);
         assert.isNotNull(snapshot.empty);
@@ -205,7 +206,7 @@ describe('Unit Testing', () => {
       });
   });
 
-  it('should save rekognition data to firestore if data already exists', (done) => {
+  it('should add license data to database', (done) => {
     const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
     
     let detectedText = rekognitionData.TextDetections.map(detected => detected.DetectedText); 
