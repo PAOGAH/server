@@ -65,27 +65,6 @@ function deleteS3Object(params) {
 }
 
 describe('Unit Testing', () => {
-  it('should failed when upload to S3', (done) => {
-    let imageBuffer = fs.readFileSync('platnya.png');
-    let params = { Bucket: undefined, Key: undefined, Body: imageBuffer };
-
-    uploadToS3(params)
-      .then(() => {
-        done();
-      })
-      .catch(err => {
-        assert.isNotNull(err['message'])
-        assert.isNotNull(err.errors);
-
-        assert.isString(err['message']);
-        assert.isArray(err.errors);
-
-        assert.exists(err.errors[0]);
-        assert.exists(err.errors[0]['message'])
-
-        done();
-      })
-  });
 
   it('should upload image correctly to AWS S3', (done) => {
 
@@ -119,6 +98,28 @@ describe('Unit Testing', () => {
       })
       .catch(err => {
         console.error(err);
+        done();
+      })
+  });
+
+  it('should failed when upload to S3', (done) => {
+    let imageBuffer = fs.readFileSync('platnya.png');
+    let params = { Bucket: undefined, Key: undefined, Body: imageBuffer };
+
+    uploadToS3(params)
+      .then(() => {
+        done();
+      })
+      .catch(err => {
+        assert.isNotNull(err['message'])
+        assert.isNotNull(err.errors);
+
+        assert.isString(err['message']);
+        assert.isArray(err.errors);
+
+        assert.exists(err.errors[0]);
+        assert.exists(err.errors[0]['message'])
+
         done();
       })
   });
