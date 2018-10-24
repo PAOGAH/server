@@ -216,6 +216,15 @@ describe('Unit Testing', () => {
       .then(snapshot => {
 
         if (snapshot.empty) {
+
+          createLicense(platText, { bucketName: BUCKET_NAME, fileName: BUCKET_KEY })
+            .then(doc => {
+
+            })
+            .catch(err => {
+              console.log(err);
+            })
+
           firestore.collection('licenses').add({
             text: plat,
             status: true,
