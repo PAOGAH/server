@@ -207,14 +207,10 @@ describe('Unit Testing', () => {
   });
 
   it('should add license data to database', (done) => {
-    const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
-    
-    let detectedText = rekognitionData.TextDetections.map(detected => detected.DetectedText); 
-    let plat = detectedText.find(platText => platCriteria.test(platText));
 
     firestore
           .collection('licenses')
-          .where('text', '==', plat)
+          .where('text', '==', platText)
           .where('status', '==', true)
           .get()
           .then(snapshot => {
@@ -251,14 +247,9 @@ describe('Unit Testing', () => {
   });
 
   it('should get firebase data correctly', (done) => {
-    const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
-    
-    let detectedText = rekognitionData.TextDetections.map(detected => detected.DetectedText); 
-    let plat = detectedText.find(platText => platCriteria.test(platText));
-
     firestore
       .collection('licenses')
-      .where('text', '==', plat)
+      .where('text', '==', platText)
       .where('status', '==', true)
       .get()
         .then(snapshot => {
