@@ -5,6 +5,8 @@ const assert = chai.assert;
 const fs = require('fs');
 const lambda = require('./index');
 
+const uploadToS3 = require('./s3');
+
 const BUCKET_NAME = 'pakogah-project2';
 const BUCKET_KEY = 'platnya.png';
 
@@ -19,19 +21,19 @@ let rekognitionData;
 let platID;
 let platText;
 
-function uploadToS3(params) {
-  return new Promise ((resolve, reject) => {
-    const s3 = new AWS.S3();
+// function uploadToS3(params) {
+//   return new Promise ((resolve, reject) => {
+//     const s3 = new AWS.S3();
     
-    s3.upload(params, (err, data) => {
-      if(err) {
-        reject(err);
-      } else {
-        resolve(data);
-      }
-    })
-  })
-}
+//     s3.upload(params, (err, data) => {
+//       if(err) {
+//         reject(err);
+//       } else {
+//         resolve(data);
+//       }
+//     })
+//   })
+// }
 
 function rekognition(params) {
   return new Promise((resolve, reject) => {
@@ -62,6 +64,27 @@ function deleteS3Object(params) {
 }
 
 describe('Unit Testing', () => {
+  it('should failed when upload to S3', (done) => {
+    let imageBuffer = fs.readFileSync('platnya.png');
+    let params = { Bucket: undefined, Key: undefined, Body: imageBuffer };
+
+    uploadToS3(params)
+      .then(() => {
+        done();
+      })
+      .catch(err => {
+        assert.isNotNull(err['message'])
+        assert.isNotNull(err.errors);
+
+        assert.isString(err['message']);
+        assert.isArray(err.errors);
+
+        assert.exists(err.errors[0]);
+        assert.exists(err.errors[0]['message'])
+
+        done();
+      })
+  });
 
   it('should upload image correctly to AWS S3', (done) => {
 
