@@ -209,41 +209,41 @@ describe('Unit Testing', () => {
   it('should add license data to database', (done) => {
 
     firestore
-          .collection('licenses')
-          .where('text', '==', platText)
-          .where('status', '==', true)
-          .get()
-          .then(snapshot => {
+      .collection('licenses')
+      .where('text', '==', platText)
+      .where('status', '==', true)
+      .get()
+      .then(snapshot => {
 
-            if (snapshot.empty) {
-              firestore.collection('licenses').add({
-                text: plat,
-                status: true,
-                createdAt: new Date().toString(),
-                updatedAt: new Date().toString(),
-                imgTrue: `https://s3.amazonaws.com/${BUCKET_NAME}/${BUCKET_KEY}`,
-                imgFalse: ''
-              }).then((doc) => {
-                  assert.exists(doc.id);
-                  assert.isNotNull(doc.id);
-                  assert.isString(doc.id);
+        if (snapshot.empty) {
+          firestore.collection('licenses').add({
+            text: plat,
+            status: true,
+            createdAt: new Date().toString(),
+            updatedAt: new Date().toString(),
+            imgTrue: `https://s3.amazonaws.com/${BUCKET_NAME}/${BUCKET_KEY}`,
+            imgFalse: ''
+          }).then((doc) => {
+              assert.exists(doc.id);
+              assert.isNotNull(doc.id);
+              assert.isString(doc.id);
 
-                  platID = doc.id;
-                  done();
-                })
-                .catch((err) => {
-                  console.error(err);
-                  done();
-                })
-            } else {
-              console.log('data already exists');
+              platID = doc.id;
               done();
-            }
-          })
-          .catch(err => {
-            console.log('Error getting documents', err);
-            done();
-          });
+            })
+            .catch((err) => {
+              console.error(err);
+              done();
+            })
+        } else {
+          console.log('data already exists');
+          done();
+        }
+      })
+      .catch(err => {
+        console.log('Error getting documents', err);
+        done();
+      });
   });
 
   it('should get firebase data correctly', (done) => {
