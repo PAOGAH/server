@@ -112,7 +112,7 @@ describe('Unit Testing', () => {
       .then(rekogResult => {
         const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
     
-        let detectedText = rekognitionData.TextDetections.map(detected => detected.DetectedText);
+        let detectedText = rekogResult.TextDetections.map(detected => detected.DetectedText);
         let plat = detectedText.find(platText => platCriteria.test(platText));
 
         rekognitionData = rekogResult
@@ -216,7 +216,6 @@ describe('Unit Testing', () => {
       .then(snapshot => {
 
         if (snapshot.empty) {
-
           createLicense(platText, { bucketName: BUCKET_NAME, fileName: BUCKET_KEY })
             .then(doc => {
               assert.exists(doc.id);
@@ -228,8 +227,9 @@ describe('Unit Testing', () => {
             })
             .catch(err => {
               console.log(err);
+              done();
             })
-            
+
         } else {
           console.log('data already exists');
           done();
