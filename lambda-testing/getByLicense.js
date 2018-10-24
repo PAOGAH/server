@@ -11,16 +11,6 @@ module.exports = (plat) => {
       .get()
       .then(snapshot => {
         resolve(snapshot);
-        // assert.exists(snapshot.empty);
-        // assert.isNotNull(snapshot.empty);
-        // assert.isBoolean(snapshot.empty);
-        
-        // done();
       })
-      .catch(err => {
-        // console.error(err);
-        // done();
-        reject(err);
-      });
   });
 }
