@@ -247,47 +247,50 @@ describe('Unit Testing', () => {
       .where('text', '==', platText)
       .where('status', '==', true)
       .get()
-        .then(snapshot => {
+      .then(snapshot => {
 
-          // Uniq license
-          if (snapshot.empty) {
-            console.log('data not exists');
-            done();
-
-          } else {
-            snapshot.forEach(doc => {
-              let data = doc.data();
-              
-              assert.exists(data);
-              assert.isNotNull(data);
-              assert.isObject(data);
-
-              assert.exists(data.text);
-              assert.exists(data.status);
-              assert.exists(data.createdAt);
-              assert.exists(data.updatedAt);
-              assert.exists(data.imgFalse);
-              assert.exists(data.imgTrue);
-
-              assert.isNotNull(data.text);
-              assert.isNotNull(data.status);
-              assert.isNotNull(data.createdAt);
-              assert.isNotNull(data.updatedAt);
-              assert.isNotNull(data.imgFalse);
-              assert.isNotNull(data.imgTrue);
-
-              assert.isString(data.text);
-              assert.isString(data.imgTrue);
-              assert.isBoolean(data.status);
-
-              done();
-            })
-          }
-        })
-        .catch(err => {
-          console.log('Error getting documents', err);
+        // Uniq license
+        if (snapshot.empty) {
+          console.log('data not exists');
           done();
-        });
+
+        } else {
+          console.log(snapshot);
+          console.log(snapshot[0], '<===========');
+
+          snapshot.forEach(doc => {
+            let data = doc.data();
+            
+            assert.exists(data);
+            assert.isNotNull(data);
+            assert.isObject(data);
+
+            assert.exists(data.text);
+            assert.exists(data.status);
+            assert.exists(data.createdAt);
+            assert.exists(data.updatedAt);
+            assert.exists(data.imgFalse);
+            assert.exists(data.imgTrue);
+
+            assert.isNotNull(data.text);
+            assert.isNotNull(data.status);
+            assert.isNotNull(data.createdAt);
+            assert.isNotNull(data.updatedAt);
+            assert.isNotNull(data.imgFalse);
+            assert.isNotNull(data.imgTrue);
+
+            assert.isString(data.text);
+            assert.isString(data.imgTrue);
+            assert.isBoolean(data.status);
+
+            done();
+          })
+        }
+      })
+      .catch(err => {
+        console.log('Error getting documents', err);
+        done();
+      });
   });
 
   it('should update firestore data if rekognition data already exists', (done) => {
