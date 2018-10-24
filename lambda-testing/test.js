@@ -6,7 +6,7 @@ const fs = require('fs');
 const { firestore } = require('./firebase.config');
 const rekognition = require('./rekognition');
 const uploadToS3 = require('./s3');
-const getByLicense = require('./getByLicense');
+const { getByLicense, createLicense } = require('./license');
 const lambda = require('./index');
 
 const BUCKET_NAME = 'pakogah-project2';
