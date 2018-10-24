@@ -23,34 +23,6 @@ let rekognitionData;
 let platID;
 let platText;
 
-// function uploadToS3(params) {
-//   return new Promise ((resolve, reject) => {
-//     const s3 = new AWS.S3();
-    
-//     s3.upload(params, (err, data) => {
-//       if(err) {
-//         reject(err);
-//       } else {
-//         resolve(data);
-//       }
-//     })
-//   })
-// }
-
-// function rekognition(params) {
-//   return new Promise((resolve, reject) => {
-//     const rekognition = new AWS.Rekognition({apiVersion: '2016-06-27'});
-
-//     rekognition.detectText(params, (err, data) => {
-//       if(err) {
-//         reject(err);
-//       } else {
-//         resolve(data);
-//       }
-//     })
-//   });
-// }
-
 function deleteS3Object(params) {
   return new Promise((resolve, reject) => {
     const s3 = new AWS.S3();
@@ -191,7 +163,6 @@ describe('Unit Testing', () => {
         assert.exists(err.code);
         assert.exists(err.statusCode);
 
-        assert.isObject(err);
         assert.isString(err.message);
         assert.isString(err.code);
         assert.isNumber(err.statusCode);
@@ -214,6 +185,22 @@ describe('Unit Testing', () => {
         done();
       })
       .catch(err => {
+        done();
+      });
+  });
+
+  it('should failed get license plate data', (done) => {
+    getByLicense()
+      .then(snapshot => {
+        done();
+      })
+      .catch(err => {
+        assert.exists(err);
+        assert.exists(err.code);
+        assert.exists(err.name);
+
+        assert.isString(err.code);
+        assert.isString(err.name);
         done();
       });
   });
