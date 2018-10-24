@@ -105,9 +105,9 @@ def push_to_s3(img, index):
 
 		timestamp = int(time.time())
 		now = datetime.datetime.now()
-		key = "{}_{}_{}_{}_{}.jpg".format(now.month, now.day,
+		key = "{}_{}_{}_{}_{}_{}.jpg".format(now.month, now.day,
 										now.hour, now.minute,
-										index)
+										timestamp, index)
 
 		s3 = boto3.client('s3')
 
@@ -148,7 +148,7 @@ def greengrass_infinite_infer_run():
 		model = awscam.Model(model_path, {'GPU': 1})
 		client.publish(topic=iot_topic, payload='Object detection model loaded')
 		# Set the threshold for detection
-		detection_threshold = 0.80
+		detection_threshold = 0.70
 		# The height and width of the training set images
 		input_height = 300
 		input_width = 300
@@ -212,7 +212,7 @@ def greengrass_infinite_infer_run():
 					crop_img = frame[ymin:ymax, xmin:xmax]
 					push_to_s3(crop_img, vehicle_type)
 					
-					cooldown = time_now + datetime.timedelta(seconds = 10)
+					cooldown = time_now + datetime.timedelta(seconds = 20)
 
 			# Set the next frame in the local display stream.
 			local_display.set_frame_data(frame)
