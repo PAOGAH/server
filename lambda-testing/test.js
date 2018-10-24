@@ -1,11 +1,12 @@
 const AWS = require('aws-sdk');
-const { firestore } = require('./firebase.config');
 const chai = require('chai');
 const assert = chai.assert;
 const fs = require('fs');
-const lambda = require('./index');
 
+const { firestore } = require('./firebase.config');
+const rekognition = require('./rekognition');
 const uploadToS3 = require('./s3');
+const lambda = require('./index');
 
 const BUCKET_NAME = 'pakogah-project2';
 const BUCKET_KEY = 'platnya.png';
@@ -35,19 +36,19 @@ let platText;
 //   })
 // }
 
-function rekognition(params) {
-  return new Promise((resolve, reject) => {
-    const rekognition = new AWS.Rekognition({apiVersion: '2016-06-27'});
+// function rekognition(params) {
+//   return new Promise((resolve, reject) => {
+//     const rekognition = new AWS.Rekognition({apiVersion: '2016-06-27'});
 
-    rekognition.detectText(params, (err, data) => {
-      if(err) {
-        reject(err);
-      } else {
-        resolve(data);
-      }
-    })
-  });
-}
+//     rekognition.detectText(params, (err, data) => {
+//       if(err) {
+//         reject(err);
+//       } else {
+//         resolve(data);
+//       }
+//     })
+//   });
+// }
 
 function deleteS3Object(params) {
   return new Promise((resolve, reject) => {
