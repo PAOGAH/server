@@ -219,20 +219,6 @@ describe('Unit Testing', () => {
 
           createLicense(platText, { bucketName: BUCKET_NAME, fileName: BUCKET_KEY })
             .then(doc => {
-
-            })
-            .catch(err => {
-              console.log(err);
-            })
-
-          firestore.collection('licenses').add({
-            text: plat,
-            status: true,
-            createdAt: new Date().toString(),
-            updatedAt: new Date().toString(),
-            imgTrue: `https://s3.amazonaws.com/${BUCKET_NAME}/${BUCKET_KEY}`,
-            imgFalse: ''
-          }).then((doc) => {
               assert.exists(doc.id);
               assert.isNotNull(doc.id);
               assert.isString(doc.id);
@@ -240,10 +226,10 @@ describe('Unit Testing', () => {
               platID = doc.id;
               done();
             })
-            .catch((err) => {
-              console.error(err);
-              done();
+            .catch(err => {
+              console.log(err);
             })
+            
         } else {
           console.log('data already exists');
           done();
