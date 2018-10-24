@@ -19,7 +19,6 @@ AWS.config.update({
 });
 
 // Save Rekognition Data
-let rekognitionData;
 let platID;
 let platText;
 
@@ -115,7 +114,6 @@ describe('Unit Testing', () => {
         let detectedText = rekogResult.TextDetections.map(detected => detected.DetectedText);
         let plat = detectedText.find(platText => platCriteria.test(platText));
 
-        rekognitionData = rekogResult
         platText = plat;
 
         assert.isObject(rekogResult);
@@ -290,15 +288,10 @@ describe('Unit Testing', () => {
       });
   });
 
-  it('should update firestore data if rekognition data already exists', (done) => {
-    const platCriteria = /[a-z]+\s[0-9]+\s[a-z]+/i
-    
-    let detectedText = rekognitionData.TextDetections.map(detected => detected.DetectedText); 
-    let plat = detectedText.find(platText => platCriteria.test(platText));
-
+  it('should update license data', (done) => {
     firestore
       .collection('licenses')
-      .where('text', '==', plat)
+      .where('text', '==', platText)
       .where('status', '==', true)
       .get()
         .then(snapshot => {
